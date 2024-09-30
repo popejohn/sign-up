@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="signupAss.css">
+    <title>Sign Up</title>
+</head>
+<body>
+    
+    <div id="container">
+        <h2>Sign up</h2>
+        <div id="containerText">
+        <input type="text" placeholder="Full Name" id="user" required>
+        <input type="tel" id="email" placeholder="Email" required onchange="suggest()">
+        <div id="usernameDiv">
+            <input type="text" id="username" autocomplete="username" placeholder="Username">
+        </div>
+        <hr>
+        <div id="password">
+            <input type="password" id="password1" autocomplete="current-password" placeholder="Password" required> 
+            <input type="password" id="password2" autocomplete="new-password" placeholder="Confirm password" required>
+        </div>
+        <div>
+            <input type="checkbox" id="checkbox" style="height: 20px; width: 20px;"><span style="color: white;">Agree to <a href="#" style="color: rgb(142, 142, 253);">terms and conditions</a></span>
+        </div>
+    
+        <button onclick="signup(event)"> Sign Up </button>
+    </div>
+    </div>
+</body>
+</html>
+<script>
+    let nameInput = document.querySelector('#user');
+    let emailInput =  document.querySelector('#email');
+    let usernameInput = document.querySelector('#username');
+    let passwordInput = document.querySelector('#password1');
+    let confirmInput = document.querySelector('#password2');
+    let checkedBox = document.getElementById('checkbox');
+    let spanTag = document.createElement('span');
+    let span2 = document.createElement('span');
+    let contain = document.querySelector('#container');
+
+
+    function suggest() {
+    if (!nameInput.value.trim()){
+        alert('Please input a name')
+    }else{
+        // grab value inside name and split 
+        let nameSplit = nameInput.value.split(' ')
+    
+        let index = Math.floor(Math.random()* (nameSplit.length))
+        let num =  Math.floor(Math.random()* 101)
+        
+        spanTag.innerHTML = `<span style="font-size: small; color: orange;">suggested username:</span> ${nameSplit[index] + num}`
+
+        document.querySelector('#usernameDiv').appendChild(spanTag)
+        spanTag.id = 'spanId'
+        spanTag.style.color = 'white'
+        spanTag.style.fontStyle = 'italic'
+    }
+}
+
+usernameInput.addEventListener('change', ()=>{
+   
+        spanTag.innerHTML = ''
+})
+
+let dataBase = []
+
+function signup(ev) {
+    // validation
+    if (nameInput.value.trim()== '' || emailInput.value.trim()== '' || passwordInput.value.trim()== '' || confirmInput.value.trim()== ''){
+         alert('All fields are mandatory')
+         return
+    }
+    ev.target.innerText = 'Loading...';
+    ev.target.style.backgroundColor = 'orange';
+
+    // Test for all possible validation cases
+    // All fields are filled, passwords match, suggested usrname is used but box for terms is not checked
+
+    if ((passwordInput.value.trim() == confirmInput.value.trim() && usernameInput.value.trim()== '' && checkedBox.checked == false) ||(passwordInput.value.trim() == confirmInput.value.trim() && usernameInput.value.trim() != '' && checkedBox.checked == false)) {
+        alert('you must agree to terms and conditions to proceed')
+    }else if (passwordInput.value.trim() == confirmInput.value.trim() && usernameInput.value.trim()== '' && checkedBox.checked == true){
+        
+        // Use suggested username as the username and be allowed to sign up and redirected to sign in
+        usernameInput.value = spanTag.innerText.split(':')[1].trim()
+        
+        dataBaseFill()
+
+    }else if (passwordInput.value.trim() == confirmInput.value.trim() && usernameInput.value.trim() != '' && checkedBox.checked == true){
+         
+        dataBaseFill()
+    
+    } else{
+        span2.innerText = 'passwords must match'
+        document.getElementById('password').appendChild(span2)
+        span2.style.color = 'red'
+        span2.style.fontSize = 'small'
+        span2.style.fontStyle = 'italic'
+
+        nameInput.value = ''
+        emailInput.value = ''
+        usernameInput.value = ''
+        passwordInput.value = ''
+        confirmInput.value= ''
+        checkedBox.checked = false
+    }
+    console.log(dataBase);
+    
+}
+
+// Create the object for the user's data and push into the database
+
+function dataBaseFill(){
+
+    setTimeout(() => {
+        let obj = {
+        name : nameInput.value,
+            email: emailInput.value,
+            username: usernameInput.value,
+            password: passwordInput.value,
+            loggedIn: false
+        }
+
+        dataBase.push(obj)
+
+        nameInput.value = ''
+        emailInput.value = ''
+        usernameInput.value = ''
+        passwordInput.value = ''
+        confirmInput.value= ''
+        checkedBox.checked = false
+
+        document.querySelector('button').innerHTML = 'Sign Up'
+        document.querySelector('button').style.backgroundColor = 'yellow'
+
+        spanTag.innerHTML = ''
+        span2.innerText = ''
+    },2500);
+
+    setTimeout(() => {
+        contain.style.display = 'flex'
+        contain.style.flexDirection = 'column'
+        contain.style.justifyContent = 'center'
+        contain.style.alignItems = 'center'
+        contain.style.gap = '15px'
+        contain.innerHTML = `<h2>Sign In</h2>
+                            <input type='email' id='inputEmail' placeholder="Email">
+                            <input type='password' id='inputPassword' placeholder='Password'>
+                            <button onclick='signIn(event)'> Sign In </button>`
+    }, 4200);
+            
+    }
+
+    // Write a function for signing in
+
+    function signIn(params) {
+        let signEmail = document.getElementById('inputEmail')
+        let signPassword =  document.getElementById('inputPassword')
+        
+        let objectCollector = dataBase.find((ob)=> {
+            return signEmail.value == ob.email
+            
+        })
+        
+        // validation
+
+        if (signEmail.value.trim() == '' || signPassword.value.trim() == ''){
+            alert('Please input your email and password')
+            return
+        }
+
+        if (!objectCollector){
+            alert('Incorrect email or password')
+
+            signEmail.value = ''
+            signPassword.value = ''
+            return
+           
+        }
+
+        if (objectCollector.password === signPassword.value){
+
+            objectCollector.loggedIn = true
+
+            alert("You've successfully logged in")
+
+            signEmail.value = ''
+            signPassword.value = ''
+        }else{
+            alert('Incorrect email or password')
+
+            signEmail.value = ''
+            signPassword.value = ''
+        }
+        
+    }
+
+</script>
